@@ -1,0 +1,61 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: The template used to create an ECS Service from the ECS Console.
+Parameters:
+  ECSClusterName:
+    Type: String
+    Default: meetout
+  SecurityGroupIDs:
+    Type: CommaDelimitedList
+    Default: sg-0b36d9cdf5f49a65e
+  SubnetIDs:
+    Type: CommaDelimitedList
+    Default: >-
+      subnet-00102d5b03ec8e5b1,subnet-0312ac3462811271a,subnet-03a7f4be1c2fa15ca,subnet-083531e1da3a1a3f0,subnet-0ba03b5770e107adb,subnet-0cccc01b9037e59de
+  VpcID:
+    Type: String
+    Default: vpc-027e73810e03823a9
+  LoadBalancerName:
+    Type: String
+    Default: ''
+
+Resources:
+  ECSService:
+    Type: 'AWS::ECS::Service'
+    Properties:
+      Cluster: meetout
+      CapacityProviderStrategy:
+        - CapacityProvider: FARGATE
+          Base: 0
+          Weight: 1
+      TaskDefinition: 'arn:aws:ecs:us-east-1:617008673791:task-definition/ecr-go-gin:1'
+      ServiceName: meetout-ecr-go-gin
+      SchedulingStrategy: REPLICA
+      DesiredCount: 1
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          SecurityGroups: !Ref SecurityGroupIDs
+          Subnets: !Ref SubnetIDs
+      PlatformVersion: LATEST
+      DeploymentConfiguration:
+        MaximumPercent: 200
+        MinimumHealthyPercent: 100
+        DeploymentCircuitBreaker:
+          Enable: true
+          Rollback: true
+      DeploymentController:
+        Type: ECS
+      ServiceConnectConfiguration:
+        Enabled: false
+      Tags:
+        - Key: 'ecs:service:stackId'
+          Value: !Ref 'AWS::StackId'
+      EnableECSManagedTags: true
+      
+Outputs:
+  ClusterName:
+    Description: The cluster used to create the service.
+    Value: !Ref ECSClusterName
+  ECSService:
+    Description: The created service.
+    Value: !Ref ECSService

@@ -1,32 +1,31 @@
 package main
 
 import (
-	"net/http"
-	"os"
-
-	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
+  "net/http"
+  "github.com/gin-gonic/gin"
+   "meetout-ecr/model"
 )
 
 func main() {
+  var user model.UserObject
+  user=model.UserObject{
+    Name:"Gaurav",
+    Marks:100,
+    Role:model.Role{
+      Name:"Admin",
+      Id:"334",
+    },
+  }
 
-	e := echo.New()
+  r := gin.Default()
+  r.GET("/",func(c *gin.Context){
+    c.JSON(http.StatusOK,user)
+  })
 
-	e.Use(middleware.Logger())
-	e.Use(middleware.Recover())
-
-	e.GET("/", func(c echo.Context) error {
-		return c.HTML(http.StatusOK, "Hello, Docker! <3")
-	})
-
-	e.GET("/ping", func(c echo.Context) error {
-		return c.JSON(http.StatusOK, struct{ Status string }{Status: "OK"})
-	})
-
-	httpPort := os.Getenv("HTTP_PORT")
-	if httpPort == "" {
-		httpPort = "8080"
-	}
-
-	e.Logger.Fatal(e.Start(":" + httpPort))
+  r.GET("/ping", func(c *gin.Context) {
+    c.JSON(http.StatusOK, gin.H{
+      "message": "pong",
+    })
+  })
+  r.Run("0.0.0.0:80") // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 }
